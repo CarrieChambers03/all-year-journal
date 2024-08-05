@@ -1,21 +1,24 @@
+//importing the required modules
 const Ajv = require("ajv");
 const ajv = new Ajv();
+const yearlySquaresDao = require ('../../dao/yearly_squares-dao.js');
 
-const weather_trackerDao = require('../../dao/weather_trackerDao.js');
-
+//schema
 const schema = {
     type: "object",
     properties: {
         year: { type: "number" },
+        type: { type: "string" },
         month: { type: "string" },
         date: { type: "number" },
-        weather: { type: "string" }
+        value: { type: "string" }
     },
-    required: ["year", "month", "date", "weather"],
+    required: ["year", "type", "month", "date", "value"],
     additionalProperties: false
 }
 
-function updateAbl (req, res){
+//function
+function updateAbl (req, res) {
     try {
         const dayUpdate = req.body;
         const valid = ajv.validate(schema, dayUpdate);
@@ -24,19 +27,17 @@ function updateAbl (req, res){
             return;
         }
 
-        dayUpdate.date = "" + dayUpdate.date;
         dayUpdate.year = "" + dayUpdate.year;
+        dayUpdate.date = "" + dayUpdate.date;
 
-        const updated = weather_trackerDao.update(dayUpdate);
+        const updated = yearlySquaresDao.update(dayUpdate);
         if (!updated) {
-            res.status(400).send({ message: "Failed to update weather" });
+            res.status(404).send({ message: "Not updated" });
             return;
         }
-        res.json({ message: "Successfully updated weather" });
-
+        res.json({ message: "Updated" });
     } catch (e) {
-        res.status(400).send({ message: e.message });
-        return;
+        res.status(500).send({ message: e.message });
     }
 }
 
